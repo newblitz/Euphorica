@@ -144,44 +144,44 @@ def know_more(request):
 #             # Form validation failed
 #             return render(request,"userend/appointment.html",{"form":form})
 # <<< ADD THESE IMPORTS AT THE TOP OF YOUR views.py FILE >>>
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from datetime import timedelta
-import os
+# from google.oauth2 import service_account
+# from googleapiclient.discovery import build
+# from datetime import timedelta
+# import os
 
-def create_google_meet_link(summary, start_time, end_time, attendees_emails):
-    """
-    Creates a Google Calendar event with a Meet link.
-    """
-    try:
-        SCOPES = ['https://www.googleapis.com/auth/calendar']
-        SERVICE_ACCOUNT_FILE = os.path.join(os.path.dirname(__file__), '..', 'service_account.json')
+# def create_google_meet_link(summary, start_time, end_time, attendees_emails):
+#     """
+#     Creates a Google Calendar event with a Meet link.
+#     """
+#     try:
+#         SCOPES = ['https://www.googleapis.com/auth/calendar']
+#         SERVICE_ACCOUNT_FILE = os.path.join(os.path.dirname(__file__), '..', 'service_account.json')
 
-        creds = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+#         creds = service_account.Credentials.from_service_account_file(
+#             SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 
-        service = build('calendar', 'v3', credentials=creds)
+#         service = build('calendar', 'v3', credentials=creds)
 
-        event = {
-            'summary': summary,
-            'start': {'dateTime': start_time.isoformat(), 'timeZone': 'Asia/Kolkata'},
-            'end': {'dateTime': end_time.isoformat(), 'timeZone': 'Asia/Kolkata'},
-            'attendees': [{'email': email} for email in attendees_emails],
-            'conferenceData': {
-                'createRequest': {
-                    'requestId': f"{start_time.isoformat()}-{random.randint(1, 100000)}",
-                    'conferenceSolutionKey': {'type': 'hangoutsMeet'}
-                }
-            },
-        }
+#         event = {
+#             'summary': summary,
+#             'start': {'dateTime': start_time.isoformat(), 'timeZone': 'Asia/Kolkata'},
+#             'end': {'dateTime': end_time.isoformat(), 'timeZone': 'Asia/Kolkata'},
+#             'attendees': [{'email': email} for email in attendees_emails],
+#             'conferenceData': {
+#                 'createRequest': {
+#                     'requestId': f"{start_time.isoformat()}-{random.randint(1, 100000)}",
+#                     'conferenceSolutionKey': {'type': 'hangoutsMeet'}
+#                 }
+#             },
+#         }
 
-        # Assuming the first attendee is the counsellor, create the event on their calendar
-        event = service.events().insert(calendarId=attendees_emails[0], body=event, conferenceDataVersion=1).execute()
+#         # Assuming the first attendee is the counsellor, create the event on their calendar
+#         event = service.events().insert(calendarId=attendees_emails[0], body=event, conferenceDataVersion=1).execute()
         
-        return event.get('hangoutLink')
-    except Exception as e:
-        print(f"Error creating Google Meet link: {e}")
-        return None
+#         return event.get('hangoutLink')
+#     except Exception as e:
+#         print(f"Error creating Google Meet link: {e}")
+#         return None
 
 # ... your existing imports and views ...class appointment(LoginRequiredMixin, View):
     # ... your existing static methods (Check_previous_appointment, etc.) are fine ...
@@ -290,7 +290,7 @@ def create_google_meet_link(summary, start_time, end_time, attendees_emails):
 #                     final.save()
 #                     DailyNotification_Counsellor.objects.create(doctor_id=final.selected_doctor.Auth_id, patient_id=final, date=form.cleaned_data.get("appointment_date"), time_slot=form.cleaned_data.get("time_slot"))
                     
-#                     # NOTE: For pending appointments, you should generate the Meet link
+                    # N For pending appointments, you should generate the Meet link
 #                     # in the view where the counsellor ACCEPTS the appointment, not here.
                     
 #                     return render(request, "userend/appointment_pending.html")
@@ -314,11 +314,32 @@ def create_google_meet_link(summary, start_time, end_time, attendees_emails):
 # Add these imports at the top
 from datetime import datetime, timedelta
 from .daily_utils import create_daily_meeting_for_appointment # Import your new helper
+from loging.email_service import email_service # Import email service
 
 # ... other imports ...
 
 class appointment(LoginRequiredMixin, View):
-    # ... your Check_previous_appointment and doctor_free_slots methods ...
+    login_url = '/create/login/'
+    
+    @staticmethod
+    def Check_previous_appointment(user, fname, lname):
+        """Check if user has an appointment in the past 3 days"""
+        previous_appointment = Appointment.objects.filter(user=user, first_name=fname, last_name=lname).order_by('-appointment_date').first()
+        now = datetime.now()
+        current_date = now.date()
+        if previous_appointment:
+            if -3<(previous_appointment.appointment_date - current_date).days < 3:
+                return True
+            else:
+                return False
+        else:
+            return False
+    
+    @staticmethod
+    def doctor_free_slots(doctor):
+        """Get doctor's free slots"""
+        doctor_free_slots = DailyLog_Counsellor.objects.filter(doctor=doctor, present=True)
+        return doctor_free_slots
 
     def get(self, request):
         form = AppointmentForm()
@@ -333,18 +354,18 @@ class appointment(LoginRequiredMixin, View):
             appointment_date = form.cleaned_data.get("appointment_date")
             
             if appointment_date < current_date:
-                return render(request, "userend/appointment.html", {"form": form, "error_message": "..."})
+                return render(request, "userend/appointment.html", {"form": form, "error_message": "You cannot book an appointment for a past date. Please select today or a future date."})
             
             max_future_date = current_date + timedelta(days=3)
             if appointment_date > max_future_date:
-                return render(request, "userend/appointment.html", {"form": form, "error_message": "..."})
+                return render(request, "userend/appointment.html", {"form": form, "error_message": "You can only book appointments up to 3 days in advance. Please select a date within the next 3 days."})
             
             final = form.save(commit=False)
             final.user = request.user
             final.date = appointment_date
 
             if self.Check_previous_appointment(request.user, form.cleaned_data.get("first_name"), form.cleaned_data.get("last_name")):
-                return render(request, "userend/appointment.html", {"form": form, "error_message": "..."})
+                return render(request, "userend/appointment.html", {"form": form, "error_message": "You have already booked an appointment in the past 3 days. Please wait before booking another appointment."})
 
             # --- Main Success Block ---
             if form.cleaned_data.get("appointment_date") == current_date:
@@ -353,7 +374,7 @@ class appointment(LoginRequiredMixin, View):
                     slot = Dailylog_Counserllor_patient.objects.filter(doctor_id=final.selected_doctor.Auth_id, date=current_date).values_list("time_slot", flat=True)
                     
                     if form.cleaned_data.get("time_slot") in slot:
-                        return render(request, "userend/appointment.html", {"form": form, "error_message": "..."})
+                        return render(request, "userend/appointment.html", {"form": form, "error_message": "This doctor is not available at this time slot. Please try a different time slot."})
                     else:
                         final.Assigned_doctor = final.selected_doctor
                         final.IsPending = False
@@ -377,6 +398,25 @@ class appointment(LoginRequiredMixin, View):
 
                         Dailylog_Counserllor_patient.objects.create(doctor_id=final.selected_doctor.Auth_id, patient_id=final, date=current_date, time_slot=form.cleaned_data.get("time_slot"), meeting_link=meet_link)
                         
+                        # Send email to patient with meet link
+                        patient_name = f"{final.first_name} {final.last_name}"
+                        counsellor_name = f"{final.selected_doctor.fname} {final.selected_doctor.lname}"
+                        patient_email = final.user.email
+                        
+                        try:
+                            email_service.send_meet_link_email(
+                                to_email=patient_email,
+                                patient_name=patient_name,
+                                counsellor_name=counsellor_name,
+                                appointment_date=current_date.strftime('%B %d, %Y'),
+                                appointment_time=form.cleaned_data.get("time_slot"),
+                                meet_link=meet_link
+                            )
+                            print(f"✅ Meet link email sent to {patient_email} for appointment {final.id}")
+                        except Exception as e:
+                            print(f"❌ Error sending meet link email: {e}")
+                            # Continue even if email fails
+                        
                         Name = final.selected_doctor.fname + " " + final.selected_doctor.lname
                         time_slot = form.cleaned_data.get("time_slot")
                         
@@ -384,22 +424,25 @@ class appointment(LoginRequiredMixin, View):
                         return render(request, "userend/appointment_success.html", info)
 
                 else:
-                    return render(request, "userend/appointment.html", {"form": form, "error_message": "..."})
+                    return render(request, "userend/appointment.html", {"form": form, "error_message": "This doctor is on leave on this date. Try for other time slots or date."})
             
             else: # Logic for future (pending) appointments
-                # ... same as before ...
-                final.IsPending = True
-                final.save()
-                DailyNotification_Counsellor.objects.create(...)
-                # NOTE: The meet link for pending appointments should be generated
-                # in the view where the counsellor ACCEPTS it. You can reuse the
-                # `create_daily_meeting_for_appointment(appointment)` function there.
-                return render(request, "userend/appointment_pending.html")
+                # Check if doctor already has a notification for this date and time
+                if DailyNotification_Counsellor.objects.filter(doctor_id=final.selected_doctor.Auth_id, date=form.cleaned_data.get("appointment_date"), time_slot=form.cleaned_data.get("time_slot")).exists():
+                    return render(request, "userend/appointment.html", {"form": form, "error_message": "This doctor is not available on this date. Try for other time slots or date."})
+                else:
+                    final.IsPending = True
+                    final.save()
+                    DailyNotification_Counsellor.objects.create(doctor_id=final.selected_doctor.Auth_id, patient_id=final, date=form.cleaned_data.get("appointment_date"), time_slot=form.cleaned_data.get("time_slot"))
+                    # NOTE: The meet link for pending appointments should be generated
+                    # in the view where the counsellor ACCEPTS it. You can reuse the
+                    # `create_daily_meeting_for_appointment(appointment)` function there.
+                    return render(request, "userend/appointment_pending.html")
         else:
             return render(request, "userend/appointment.html", {"form": form})
 
 def index(request):
-    return render(request,"userend/index.html")
+    return render(request,"userend/index1.html")
 
 @login_required(login_url='/create/login/')
 def appointment_success(request):
