@@ -17,7 +17,24 @@ from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
 
+
 # Create your views here.
+
+# views.py
+from django.contrib.auth import views as auth_views
+from django.shortcuts import redirect
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
+
+@method_decorator(never_cache, name='dispatch')
+class CustomLoginView(auth_views.LoginView):
+    template_name = 'registration/login.html'  # your login template
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('home')  # redirect to home/dashboard if already logged in
+        return super().dispatch(request, *args, **kwargs)
+
 class CreateAccount(View):
     """First step: Email verification"""
     
@@ -199,11 +216,11 @@ class CompleteRegistration(View):
             except IntegrityError:
                 messages.error(request, 'An account with this username already exists. Please use a different username.')
                 return render(request, "loging/complete_registration.html", {"form": form, "email": email})
-            else:
-                # Display form validation errors
-                for field, errors in form.errors.items():
-                    for error in errors:
-                        messages.error(request, f'{field}: {error}')
+        else:
+            # Display form validation errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
             return render(request, "loging/complete_registration.html", {"form": form, "email": email})
 
 class redirect_view(LoginRequiredMixin,View):
@@ -314,3 +331,11 @@ class counsellor(View):
 class intern(View):
     def get(self, request):
         return render(request, "userend/genz_dashboard.html")
+
+# class how_it_works(View):
+#     def get(self, request):
+#         return render(request, "userend/how_it_works.html")
+
+# class list_psychologists(View):
+#     def get(self, request):
+#         return render(request, "userend/list_psychologists.html")
