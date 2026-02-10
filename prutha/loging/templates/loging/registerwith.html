@@ -40,27 +40,28 @@
         .field input, .field select{background:transparent;padding:16px 14px;border-radius:12px;border:1px solid rgba(15,23,42,0.06);width:100%;font-size:15px;transition:all .15s ease}
         .field input:focus, .field select:focus{border-color:var(--accent-2);box-shadow:0 0 8px rgba(124,58,237,0.2);outline:none}
         
-        /* Gender selection styling */
-        .gender-option input[type="radio"] { display: none; }
-        .gender-option label {
-            display: block;
-            padding: 12px 16px;
-            background: rgba(255,255,255,0.8);
-            border: 2px solid rgba(15,23,42,0.06);
+        /* Django form field styling */
+        .field input[type="email"], 
+        .field input[type="password"], 
+        .field input[type="text"], 
+        .field input[type="hidden"] {
+            background: transparent;
+            padding: 16px 14px;
             border-radius: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
+            border: 1px solid rgba(15,23,42,0.06);
+            width: 100%;
+            font-size: 15px;
+            transition: all .15s ease;
         }
-        .gender-option input[type="radio"]:checked + label {
+        .field input[type="email"]:focus, 
+        .field input[type="password"]:focus, 
+        .field input[type="text"]:focus {
             border-color: var(--accent-2);
-            background: rgba(124,58,237,0.1);
-            color: var(--accent-2);
+            box-shadow: 0 0 8px rgba(124,58,237,0.2);
+            outline: none;
         }
-        .gender-option label:hover {
-            border-color: var(--accent-2);
-            transform: translateY(-2px);
+        .field input[type="hidden"] {
+            display: none;
         }
     </style>
 </head>
@@ -80,14 +81,15 @@
                 <span class="font-semibold text-gray-800 text-lg">MindEase</span>
             </a>
             <nav class="hidden md:flex items-center gap-6 text-sm text-gray-600">
-                <a href="{% url 'userend:know-more' %}" class="hover:text-gray-800">How it works</a>
+                <a href="{% url 'userend:know_more' %}" class="hover:text-gray-800">How it works</a>
                 <a href="#" class="hover:text-gray-800">Psychologists</a>
                 <a href="#" class="hover:text-gray-800">Initiatives</a>
-                <a href="{% url 'userend:register' %}" class="px-4 py-2 rounded-lg border border-transparent hover:border-gray-200">Get Started</a>
+                <a href="{% url 'userend:internship' %}" class="hover:text-gray-800">Careers</a>
+                <a href="{% url 'loging:CreateAccount' %}" class="px-4 py-2 rounded-lg border border-transparent hover:border-gray-200">Get Started</a>
             </nav>
             <div class="flex items-center gap-3">
-                <a href="{% url 'userend:login' %}" class="px-4 py-2 text-gray-600 hover:text-gray-800">Sign in</a>
-                <a href="{% url 'userend:register' %}" class="px-4 py-2 rounded-lg accent-btn text-white font-medium">Sign up</a>
+                <a href="{% url 'loging:loginView' %}" class="px-4 py-2 text-gray-600 hover:text-gray-800">Sign in</a>
+                <a href="{% url 'loging:CreateAccount' %}" class="px-4 py-2 rounded-lg accent-btn text-white font-medium">Sign up</a>
             </div>
         </header>
 
@@ -121,65 +123,58 @@
                         </li>
                     </ul>
 
-                    <div class="mt-8 text-sm text-gray-500">Already have an account? <a href="{% url 'userend:login' %}" class="font-semibold text-gray-800">Sign in here</a></div>
+                    <div class="mt-8 text-sm text-gray-500">Already have an account? <a href="{% url 'loging:loginView' %}" class="font-semibold text-gray-800">Sign in here</a></div>
                 </div>
 
                 <!-- right: registration panel -->
                 <div class="panel p-8 md:p-10">
                     <div class="flex items-center justify-between mb-6">
                         <div>
-                            <h2 class="text-xl font-semibold text-gray-800">Create Account</h2>
-                            <p class="text-sm text-gray-500 mt-1">Join our community of wellness seekers</p>
+                            <h2 class="text-xl font-semibold text-gray-800">Start Your Journey</h2>
+                            <p class="text-sm text-gray-500 mt-1">Enter your email to begin registration</p>
                         </div>
                     </div>
 
-                    <form class="space-y-4" action="#" method="post">
-                         {% csrf_token %}
+                    <!-- Display Messages -->
+                    {% if messages %}
+                        <div class="mb-4">
+                            {% for message in messages %}
+                                <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 border border-red-400 text-red-700{% else %}bg-green-100 border border-green-400 text-green-700{% endif %}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form class="space-y-4" method="post">
+                        {% csrf_token %}
                         
-                         {{ user_form.as_p }}
-                         {{ profile_form.as_p }}
-                         <!-- <div class="field">
-                             <input id="name" name="name" type="text" placeholder="Full Name" class="w-full" required />
-                         </div> -->
-
-                        <!-- Age and Phone Row -->
-                        <!-- <div class="grid grid-cols-2 gap-4">
-                            <div class="field"> --> -->
-                                <!-- <input id="age" name="age" type="number" placeholder="Age" min="18" max="100" class="w-full" required />
-                            </div>
-                            <div class="field">
-                                <input id="phone" name="phone" type="tel" placeholder="Phone Number" class="w-full" required />
-                            </div>
-                        </div>
-
-                        <!-- Gender Selection -->
-                        <div class="space-y-2">
-                            <label class="block text-sm font-medium text-gray-700">Gender</label>
-                            <div class="grid grid-cols-3 gap-3">
-                                <div class="gender-option">
-                                    <input type="radio" id="male" name="gender" value="male" required />
-                                    <label for="male">Male</label>
-                                </div>
-                                <div class="gender-option">
-                                    <input type="radio" id="female" name="gender" value="female" /> -->
-                                    <!-- <label for="female">Female</label>
-                                </div>
-                                <div class="gender-option">
-                                    <input type="radio" id="non-binary" name="gender" value="non-binary" />
-                                    <label for="non-binary">Non-Binary</label>
+                        <!-- Display form errors if any -->
+                        {% if form.non_field_errors %}
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-red-500">error</span>
+                                    <div class="text-red-700 text-sm">
+                                        {% for error in form.non_field_errors %}
+                                            <p>{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        {% endif %}
 
-                        <!-- Email -->
+                        <!-- Email Field -->
                         <div class="field">
-                            <input id="email" name="email" type="email" placeholder="Email Address" class="w-full" required />
+                            <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-red-500 text-xs mt-1">
+                                    {% for error in form.email.errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
-
-                        <!-- Password -->
-                        <div class="field">
-                            <input id="password" name="password" type="password" placeholder="Password" class="w-full" required />
-                        </div> -->
 
                         <!-- Terms and Conditions -->
                         <div class="flex items-center gap-2">
@@ -192,27 +187,19 @@
 
                         <!-- Submit Button -->
                         <button type="submit" class="w-full py-3 rounded-lg accent-btn font-semibold shadow-sm hover:shadow-md transition-all">
-                            Create Account
+                            Send Verification Code
                         </button>
 
-                        <!-- Social Login Options -->
-                        <div class="text-center mt-2">
-                            <span class="text-sm text-gray-500">or continue with</span>
-                            <div class="mt-3 flex gap-3 justify-center">
-                                <button type="button" class="px-4 py-2 border rounded-lg flex items-center gap-2 hover:bg-gray-50 transition-colors">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                        <path d="M21 12.79A9 9 0 1 0 10.21 3" stroke="#374151" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    Google
-                                </button>
-                                <button type="button" class="px-4 py-2 border rounded-lg flex items-center gap-2 hover:bg-gray-50 transition-colors">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                        <path d="M12 5v14M5 12h14" stroke="#374151" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    Demo
-                                </button>
-                            </div>
-                        </div>
+                        <!-- Info about next steps -->
+                        <!-- <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-blue-500 text-sm">info</span> -->
+                                <!-- <div class="text-blue-700 text-sm">
+                                    <p class="font-medium">What happens next?</p>
+                                    <p>We'll send a verification code to your email. After verification, you'll complete your profile.</p>
+                                </div> -->
+                            <!-- </div>
+                        </div> -->
                     </form>
 
                     <div class="mt-6 text-center text-sm text-gray-500">
@@ -227,37 +214,17 @@
     </div>
 
     <script>
-        // Phone number formatting
-        const phoneInput = document.getElementById('phone');
-        phoneInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length >= 10) {
-                value = value.substring(0, 10);
-                value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-            }
-            e.target.value = value;
-        });
-
         // Form submission handling
         document.querySelector('form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Get form data
-            const formData = new FormData(this);
             const submitBtn = this.querySelector('button[type="submit"]');
             const originalText = submitBtn.textContent;
             
             // Show loading state
-            submitBtn.textContent = 'Creating Account...';
+            submitBtn.textContent = 'Sending Code...';
             submitBtn.disabled = true;
             
-            // Simulate form submission (replace with actual form handling)
-            setTimeout(() => {
-                alert('Account created successfully! Welcome to MindEase.');
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-                this.reset();
-            }, 2000);
+            // Let Django handle the form submission
+            // The form will be submitted normally to the Django view
         });
 
         // Enhanced input animations
@@ -270,6 +237,15 @@
             input.addEventListener('blur', function() {
                 this.parentElement.style.transform = 'translateY(0)';
             });
+        });
+
+        // Add placeholders to Django form fields
+        document.addEventListener('DOMContentLoaded', function() {
+            const emailField = document.querySelector('input[type="email"]');
+            
+            if (emailField && !emailField.placeholder) {
+                emailField.placeholder = 'Email Address';
+            }
         });
     </script>
 </body>
