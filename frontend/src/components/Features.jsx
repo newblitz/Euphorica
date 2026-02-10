@@ -1,104 +1,88 @@
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Video, MessageCircle, Calendar, Lock, Users, TrendingUp } from 'lucide-react';
 import '../styles/Features.css';
 
+const features = [
+  {
+    icon: Video,
+    title: 'Video Sessions',
+    description: 'Face-to-face therapy from anywhere with secure, encrypted video calls.',
+  },
+  {
+    icon: MessageCircle,
+    title: 'Chat Support',
+    description: 'Message your therapist anytime between scheduled sessions.',
+  },
+  {
+    icon: Calendar,
+    title: 'Easy Scheduling',
+    description: 'Book appointments that fit your schedule with flexible time slots.',
+  },
+  {
+    icon: Lock,
+    title: 'Private & Secure',
+    description: 'End-to-end encryption ensures your conversations stay confidential.',
+  },
+  {
+    icon: Users,
+    title: 'Expert Therapists',
+    description: '500+ licensed professionals across multiple specializations.',
+  },
+  {
+    icon: TrendingUp,
+    title: 'Track Progress',
+    description: 'Monitor your mental health journey with personalized insights.',
+  },
+];
+
 function Features() {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start end', 'end start'],
-  });
-
-  const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
-
-  const features = [
-    {
-      icon: Video,
-      title: 'Video Sessions',
-      description: 'Face-to-face therapy from anywhere with secure video calls',
-    },
-    {
-      icon: MessageCircle,
-      title: 'Chat Support',
-      description: 'Message your therapist anytime between sessions',
-    },
-    {
-      icon: Calendar,
-      title: 'Easy Scheduling',
-      description: 'Book appointments that fit your busy schedule',
-    },
-    {
-      icon: Lock,
-      title: 'Private & Secure',
-      description: 'Your conversations are 100% confidential',
-    },
-    {
-      icon: Users,
-      title: 'Expert Therapists',
-      description: '500+ licensed professionals ready to help',
-    },
-    {
-      icon: TrendingUp,
-      title: 'Track Progress',
-      description: 'Monitor your mental health journey with insights',
-    },
-  ];
-
   return (
-    <section ref={ref} className="section features">
-      <motion.div className="features-background" style={{ y }} />
-
+    <section className="features">
       <div className="container">
-        <motion.h2
-          className="section-title"
-          initial={{ opacity: 0, y: 50 }}
+        <motion.div
+          className="features-header"
+          initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.7 }}
         >
-          Everything You Need for Better Mental Health
-        </motion.h2>
-        <motion.p
-          className="section-subtitle"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-        >
-          Professional support designed to help you thrive
-        </motion.p>
+          <div className="features-label">Platform</div>
+          <h2 className="features-title">
+            Everything you need for better mental health
+          </h2>
+          <p className="features-subtitle">
+            Professional support designed around your needs
+          </p>
+        </motion.div>
 
-        <div className="features-grid">
+        <motion.div
+          className="features-grid"
+          initial={{ opacity: 0, y: 60 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.8, delay: 0.1 }}
+        >
           {features.map((feature, index) => (
             <motion.div
               key={index}
               className="feature-card"
-              initial={{ opacity: 0, y: 60 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
               transition={{
                 duration: 0.5,
-                delay: index * 0.1,
-                ease: [0.21, 0.45, 0.27, 0.9]
-              }}
-              whileHover={{
-                y: -8,
-                transition: { duration: 0.2 }
+                delay: index * 0.08,
+                ease: [0.16, 1, 0.3, 1],
               }}
             >
-              <motion.div
-                className="feature-icon"
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                transition={{ duration: 0.3 }}
-              >
-                <feature.icon size={28} strokeWidth={2} />
-              </motion.div>
+              <div className="feature-icon">
+                <feature.icon size={22} strokeWidth={1.8} />
+              </div>
               <h3>{feature.title}</h3>
               <p>{feature.description}</p>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

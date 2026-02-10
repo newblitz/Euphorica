@@ -1,8 +1,9 @@
-import { motion } from 'framer-motion';
-import { Brain, Calendar, Shield, Clock, CheckCircle, MessageCircle } from 'lucide-react';
 import Navigation from '../components/Navigation';
 import Hero from '../components/Hero';
 import Features from '../components/Features';
+import HowItWorks from '../components/HowItWorks';
+import Stats from '../components/Stats';
+import Testimonials from '../components/Testimonials';
 import Benefits from '../components/Benefits';
 import Footer from '../components/Footer';
 import '../styles/HomePage.css';
@@ -13,6 +14,9 @@ function HomePage() {
       <Navigation />
       <Hero />
       <Features />
+      <HowItWorks />
+      <Stats />
+      <Testimonials />
       <Benefits />
       <Footer />
     </div>

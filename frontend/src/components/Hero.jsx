@@ -1,196 +1,168 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { ArrowRight, Sparkles, Play } from 'lucide-react';
-import { useRef } from 'react';
+import { ArrowRight, ChevronRight } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
 import '../styles/Hero.css';
 
-function Hero() {
+function AnimatedCounter({ target, suffix = '' }) {
+  const [count, setCount] = useState(0);
   const ref = useRef(null);
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+          let start = 0;
+          const duration = 2000;
+          const startTime = performance.now();
+          const animate = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.floor(eased * target));
+            if (progress < 1) requestAnimationFrame(animate);
+          };
+          requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.5 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [target, hasAnimated]);
+
+  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
+}
+
+function Hero() {
+  const sectionRef = useRef(null);
   const { scrollYProgress } = useScroll({
-    target: ref,
+    target: sectionRef,
     offset: ['start start', 'end start'],
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
-  const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+  const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+
+  const titleVariants = {
+    hidden: {},
+    visible: {
+      transition: { staggerChildren: 0.08 },
+    },
+  };
+
+  const lineVariants = {
+    hidden: { opacity: 0, y: 60 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+    },
+  };
 
   return (
-    <section ref={ref} className="hero">
-      <div className="hero-grid" />
+    <section ref={sectionRef} className="hero">
+      <div className="hero-noise" />
+      <motion.div
+        className="hero-glow-1"
+        animate={{ scale: [1, 1.2, 1], opacity: [0.12, 0.18, 0.12] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="hero-glow-2"
+        animate={{ scale: [1, 1.15, 1], opacity: [0.08, 0.14, 0.08] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
+      <div className="hero-grid-lines" />
 
-      <motion.div className="hero-glow" style={{ opacity }} />
-
-      <div className="hero-container">
+      <motion.div className="hero-content" style={{ y: contentY, opacity: contentOpacity }}>
         <motion.div
-          className="hero-content"
-          style={{ y, opacity }}
+          className="hero-badge"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <motion.div
-            className="hero-badge"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            <span className="badge-dot" />
-            <span>Professional Mental Health Support</span>
-          </motion.div>
+          <span className="badge-pulse" />
+          <span>Professional Mental Health Support</span>
+        </motion.div>
 
-          <motion.h1
-            className="hero-title"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            Design your path to
-            <br />
-            <span className="gradient-text">mental wellness</span>
-          </motion.h1>
+        <motion.h1
+          className="hero-title"
+          variants={titleVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.span className="hero-title-line" variants={lineVariants}>
+            Your mind deserves
+          </motion.span>
+          <motion.span className="hero-title-line" variants={lineVariants}>
+            <span className="teal">expert care.</span>
+          </motion.span>
+        </motion.h1>
 
-          <motion.p
-            className="hero-description"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            Connect with licensed therapists who understand your journey.
-            Start building a healthier mind today.
-          </motion.p>
+        <motion.p
+          className="hero-description"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.5 }}
+        >
+          Connect with licensed therapists who understand your journey.
+          Evidence-based therapy, accessible from anywhere.
+        </motion.p>
 
-          <motion.div
-            className="hero-actions"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+        <motion.div
+          className="hero-buttons"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.65 }}
+        >
+          <motion.a
+            href="/appointment"
+            className="hero-btn-primary"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
           >
-            <motion.a
-              href="/appointment"
-              className="btn btn-primary"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Start for Free
-              <ArrowRight size={18} strokeWidth={2} />
-            </motion.a>
-
-            <motion.button
-              className="btn btn-play"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <div className="play-icon">
-                <Play size={14} fill="currentColor" />
-              </div>
-              <span>Watch Demo</span>
-            </motion.button>
-          </motion.div>
-
-          <motion.div
-            className="hero-trust"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            Book a Session <ArrowRight size={18} />
+          </motion.a>
+          <motion.a
+            href="/know_more"
+            className="hero-btn-secondary"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
           >
-            <div className="trust-avatars">
-              <div className="avatar">🧑</div>
-              <div className="avatar">👨</div>
-              <div className="avatar">👩</div>
-              <div className="avatar">🧑‍🦱</div>
-            </div>
-            <div className="trust-text">
-              <strong>2,000+</strong> people started their journey this month
-            </div>
-          </motion.div>
+            Learn More <ChevronRight size={18} />
+          </motion.a>
         </motion.div>
 
         <motion.div
-          className="hero-visual"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          className="hero-metrics"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.9 }}
         >
-          <div className="visual-card main-card">
-            <motion.div
-              className="card-pulse"
-              animate={{
-                scale: [1, 1.1, 1],
-                opacity: [0.5, 0.8, 0.5],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            />
-            <div className="card-content">
-              <div className="card-header">
-                <div className="status-indicator">
-                  <span className="status-dot" />
-                  <span>Available Now</span>
-                </div>
-              </div>
-              <div className="card-body">
-                <h3>Your Wellness Journey</h3>
-                <div className="progress-ring">
-                  <svg viewBox="0 0 100 100">
-                    <defs>
-                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#0ea5e9" />
-                        <stop offset="100%" stopColor="#6366f1" />
-                      </linearGradient>
-                    </defs>
-                    <circle cx="50" cy="50" r="45" />
-                    <motion.circle
-                      cx="50"
-                      cy="50"
-                      r="45"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: 0.75 }}
-                      transition={{ duration: 2, ease: 'easeOut' }}
-                    />
-                  </svg>
-                  <div className="progress-value">75%</div>
-                </div>
-              </div>
+          <div className="hero-metric">
+            <div className="hero-metric-value">
+              <AnimatedCounter target={2000} suffix="+" />
             </div>
+            <div className="hero-metric-label">Sessions Completed</div>
           </div>
-
-          <motion.div
-            className="visual-card floating-stat stat-1"
-            animate={{
-              y: [0, -10, 0],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          >
-            <Sparkles size={20} />
-            <div>
-              <div className="stat-value">98%</div>
-              <div className="stat-label">Satisfaction</div>
+          <div className="hero-metric-divider" />
+          <div className="hero-metric">
+            <div className="hero-metric-value">
+              <AnimatedCounter target={500} suffix="+" />
             </div>
-          </motion.div>
-
-          <motion.div
-            className="visual-card floating-stat stat-2"
-            animate={{
-              y: [0, -15, 0],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 0.5,
-            }}
-          >
-            <div className="stat-icon">⚡</div>
-            <div>
-              <div className="stat-value">24/7</div>
-              <div className="stat-label">Support</div>
+            <div className="hero-metric-label">Licensed Therapists</div>
+          </div>
+          <div className="hero-metric-divider" />
+          <div className="hero-metric">
+            <div className="hero-metric-value">
+              <AnimatedCounter target={98} suffix="%" />
             </div>
-          </motion.div>
+            <div className="hero-metric-label">Client Satisfaction</div>
+          </div>
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   );
 }
