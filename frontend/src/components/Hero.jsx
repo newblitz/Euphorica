@@ -1,5 +1,5 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { ArrowRight, ChevronRight } from 'lucide-react';
+import { ArrowRight, ChevronRight, Sparkles, Zap } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import '../styles/Hero.css';
 
@@ -35,6 +35,27 @@ function AnimatedCounter({ target, suffix = '' }) {
   return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
 }
 
+function FloatingParticle({ delay, duration, x, y }) {
+  return (
+    <motion.div
+      className="floating-particle"
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{
+        opacity: [0, 1, 0],
+        scale: [0, 1, 0],
+        x: [0, x, x * 1.5],
+        y: [0, y, y * 1.5],
+      }}
+      transition={{
+        duration: duration,
+        delay: delay,
+        repeat: Infinity,
+        ease: 'easeInOut',
+      }}
+    />
+  );
+}
+
 function Hero() {
   const sectionRef = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -44,6 +65,8 @@ function Hero() {
 
   const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const imageY = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
+  const imageScale = useTransform(scrollYProgress, [0, 1], [1, 1.2]);
 
   const titleVariants = {
     hidden: {},
@@ -63,16 +86,56 @@ function Hero() {
 
   return (
     <section ref={sectionRef} className="hero">
+      <motion.div
+        className="hero-background-image"
+        style={{ y: imageY, scale: imageScale }}
+      >
+        <img
+          src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=1920"
+          alt="Mental wellness"
+        />
+        <div className="hero-image-overlay" />
+      </motion.div>
+
       <div className="hero-noise" />
+
+      {[...Array(15)].map((_, i) => (
+        <FloatingParticle
+          key={i}
+          delay={i * 0.5}
+          duration={8 + Math.random() * 4}
+          x={(Math.random() - 0.5) * 200}
+          y={(Math.random() - 0.5) * 200}
+        />
+      ))}
+
       <motion.div
         className="hero-glow-1"
-        animate={{ scale: [1, 1.2, 1], opacity: [0.12, 0.18, 0.12] }}
+        animate={{
+          scale: [1, 1.3, 1],
+          opacity: [0.15, 0.25, 0.15],
+          x: [-20, 20, -20],
+          y: [-20, 20, -20]
+        }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="hero-glow-2"
-        animate={{ scale: [1, 1.15, 1], opacity: [0.08, 0.14, 0.08] }}
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.12, 0.2, 0.12],
+          x: [20, -20, 20],
+          y: [20, -20, 20]
+        }}
         transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
+      <motion.div
+        className="hero-glow-3"
+        animate={{
+          scale: [1, 1.25, 1],
+          opacity: [0.08, 0.15, 0.08],
+        }}
+        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
       />
       <div className="hero-grid-lines" />
 
@@ -83,8 +146,14 @@ function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <span className="badge-pulse" />
-          <span>Professional Mental Health Support</span>
+          <motion.span
+            className="badge-pulse"
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+          <Sparkles size={14} />
+          <span>AI-Powered Mental Health Support</span>
+          <Zap size={14} />
         </motion.div>
 
         <motion.h1
@@ -94,10 +163,10 @@ function Hero() {
           animate="visible"
         >
           <motion.span className="hero-title-line" variants={lineVariants}>
-            Your mind deserves
+            Transform Your Mental
           </motion.span>
           <motion.span className="hero-title-line" variants={lineVariants}>
-            <span className="teal">expert care.</span>
+            <span className="gradient-text">Wellness Journey</span>
           </motion.span>
         </motion.h1>
 
@@ -107,8 +176,8 @@ function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.5 }}
         >
-          Connect with licensed therapists who understand your journey.
-          Evidence-based therapy, accessible from anywhere.
+          Connect with certified therapists and unlock personalized mental health support.
+          Experience cutting-edge therapy powered by AI insights, accessible anytime, anywhere.
         </motion.p>
 
         <motion.div
@@ -120,18 +189,20 @@ function Hero() {
           <motion.a
             href="/appointment"
             className="hero-btn-primary"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.05, boxShadow: '0 20px 60px rgba(14, 165, 233, 0.4)' }}
+            whileTap={{ scale: 0.95 }}
           >
-            Book a Session <ArrowRight size={18} />
+            <span>Start Your Journey</span>
+            <ArrowRight size={20} />
           </motion.a>
           <motion.a
             href="/know_more"
             className="hero-btn-secondary"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            Learn More <ChevronRight size={18} />
+            <span>Explore Features</span>
+            <ChevronRight size={20} />
           </motion.a>
         </motion.div>
 
@@ -141,26 +212,35 @@ function Hero() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.9 }}
         >
-          <div className="hero-metric">
+          <motion.div
+            className="hero-metric"
+            whileHover={{ scale: 1.05 }}
+          >
             <div className="hero-metric-value">
-              <AnimatedCounter target={2000} suffix="+" />
+              <AnimatedCounter target={5000} suffix="+" />
             </div>
-            <div className="hero-metric-label">Sessions Completed</div>
-          </div>
+            <div className="hero-metric-label">Lives Transformed</div>
+          </motion.div>
           <div className="hero-metric-divider" />
-          <div className="hero-metric">
+          <motion.div
+            className="hero-metric"
+            whileHover={{ scale: 1.05 }}
+          >
             <div className="hero-metric-value">
-              <AnimatedCounter target={500} suffix="+" />
+              <AnimatedCounter target={750} suffix="+" />
             </div>
-            <div className="hero-metric-label">Licensed Therapists</div>
-          </div>
+            <div className="hero-metric-label">Expert Therapists</div>
+          </motion.div>
           <div className="hero-metric-divider" />
-          <div className="hero-metric">
+          <motion.div
+            className="hero-metric"
+            whileHover={{ scale: 1.05 }}
+          >
             <div className="hero-metric-value">
-              <AnimatedCounter target={98} suffix="%" />
+              <AnimatedCounter target={99} suffix="%" />
             </div>
-            <div className="hero-metric-label">Client Satisfaction</div>
-          </div>
+            <div className="hero-metric-label">Success Rate</div>
+          </motion.div>
         </motion.div>
       </motion.div>
     </section>
