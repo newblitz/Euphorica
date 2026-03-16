@@ -1,4 +1,4 @@
-# 🧠 Psychology Web Project
+#  Psychology Web Project
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue)
 ![Django](https://img.shields.io/badge/Django-5.2.7-green)
